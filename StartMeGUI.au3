@@ -1,5 +1,10 @@
-; HOTSOS Facilities Script
-; by Kevin A. Gasca 5/9/18
+; Script Name:  StartMeGUI.au3
+; Desc:     A work related script that
+;			controls various job related
+;			duties.
+; Author:       Gasca, K
+; Created:      2 / 1 / 2017
+; Version:      2.0
 
 #include <MsgBoxConstants.au3>
 #include <ButtonConstants.au3>
@@ -10,6 +15,9 @@
 #include <File.au3>
 #include <Crypt.au3>
 
+; UDF's ;
+#include "SnitchMe2.au3"
+
 Opt("WinTitleMatchMode", 2)
 Opt("WinWaitDelay", 1000)
 Opt("MouseCoordMode", 0)
@@ -19,14 +27,16 @@ Global $StartMe = GUICreate("StartMe GUI v 1.02", 315, 150, -1, -1)
 ; Cryptography ;
 _Crypt_Startup();
 Local $hkey = _Crypt_DeriveKey(StringToBinary("LiamisBadass"), $CALG_AES_128) ; Change "LiamisBadass" for machine specific encryption.
+;---------------;
 
 ; Menu Selection ;
 $idFileMenu = GUICtrlCreateMenu("File")
 $idLMSPass = GUICtrlCreateMenuItem("LMS Password", $idFileMenu)
 $idHOTPass = GUICtrlCreateMenuItem("HotSOS Password", $idFileMenu)
 $idSnitchMe = GUICtrlCreateMenuitem("SnitchMe", $idFileMenu)
-; End Menu ;
+;---------------;
 
+; Create Main Controller Window ;
 $startText = GUICtrlCreateLabel("Click to Launch and Login:", 32, 16, 252, 28, $SS_CENTER)
 GUICtrlSetFont(-1, 14, 800, 0, "MS Sans Serif")
 GUICtrlSetColor(-1, 0x000000)
@@ -34,16 +44,16 @@ $hotButton = GUICtrlCreateButton("HotSOS", 40, 56, 91, 33)
 $lmsButton = GUICtrlCreateButton("LMS", 168, 56, 91, 33)
 Global $hotBox = GUICtrlCreateCheckbox("Prevent Auto Log ", 32, 96, 113, 17)
 GUISetState(@SW_SHOW, $StartMe)
+;---------------;
 
 ; Password Retrieval ;
 Global $saveIndexHOT = "hsIndex.smg"
 Global $saveIndexLMS = "lmsIndex.smg"
-
 Local $sHsUser = retUser("sHsUser")
 Global $sHotPass = retPass($saveIndexHOT)
 Local $sLmsUser = retUser("sLmsUser")
 Global $sLmsPass = retPass($saveIndexLMS)
-
+;---------------;
 Local $counter = 0
 
 While 1
@@ -66,7 +76,7 @@ While 1
 		 GUISetState(@SW_ENABLE, $StartMe)
 	  ; Run Snitch report ;
 	  Case $idSnitchMe
-		 Run("run.bat")
+		 SnitchMe2()
 	  ; Run Hotsos ;
 	  Case $hotButton
 		 GUISetState(@SW_DISABLE, $StartMe)
@@ -218,10 +228,10 @@ Func retUser($sToReturn)
 
    if FileExists($sFilePath) NOT Then
 	  MsgBox($MB_OK, "StartMe GUI", "File Does not exist. Creating .ini . . .")
-	  ;DirCreate($sFilePath)
+	  DirCreate($sFilePath)
 	  IniWrite($sFilePath , "StartMe - UserNames", "HotSOS", "Change Here")
-	  IniWrite($sFilePath , "StartMe - UserNames", "LMS", "Change Here") ;& "startMe.ini"
-	  ShellExecute($sFilePath ) ;& "startMe.ini"
+	  IniWrite($sFilePath , "StartMe - UserNames", "LMS", "Change Here")
+	  ShellExecute($sFilePath )
 
    ElseIf $sToReturn = "sHsUser" Then
 	  return IniRead($sFilePath & "startMe.ini", "StartMe - UserNames", "HotSOS", "Default")
@@ -230,11 +240,6 @@ Func retUser($sToReturn)
 	  return IniRead($sFilePath & "startMe.ini", "StartMe - UserNames", "LMS", "Default")
    EndIf
 
-EndFunc
-
-; Debug ;
-Func Debug($input)
-   MsgBox($MB_SYSTEMMODAL, "StartMe GUI: DEBUG MODE", $input)
 EndFunc
 
 ; Check for Control Checked ;
