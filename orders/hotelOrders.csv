@@ -1,0 +1,18 @@
+Orders Console,,,,,,,,,,
+ FAC - *All Trades - Not Timelox, **FAC - East and West Towers, All Departments, Closed, From: 10/9/2018 00:00, To: 10/10/2018 23:59, Completed,2,3,4,5
+,,,,,,,,,,
+A,Order #,Status,Priority,Trade,Issue,Room/Eq,Requestor,Assigned,Age,Occupancy
+FALSE,12688220,Stopped,3,FAC - Hotel Shop,Technical Assist - Hotel,WE - Corridor - Floor 22,John Doe,John Doe,    5 hours ,FALSE
+FALSE,12688180,Closed,3,FAC - Hotel Shop,Break - Hotel Shop,WE - Elevator Lobby - Floor 32,John Doe,John Doe,     20 min,FALSE
+FALSE,12688150,Closed,5,FAC - Hotel Shop,Restocking Parts,ES - Elevator Lobby - Floor 19,John Doe,John Doe,     25 min,FALSE
+FALSE,12688115,Closed,5,FAC - Locksmith Shop,Safe Locked By Prior Guest - (SEC & Guest Must Be Present,WE - 3535 - SAN,John Doe,John Doe,     13 min,FALSE
+FALSE,12688095,Closed,3,FAC - Locksmith Shop,Safe Locked By Guest - (Guest Must Be Present),WE - 3535 - SAN,John Doe,John Doe,     20 min,FALSE
+FALSE,12688057,Closed,2,FAC - Hotel Shop,Guestroom - No Water Pressure,WE - 1533 - SKN,John Doe,John Doe,    3 hours ,FALSE
+FALSE,12687999,Directed,5,FAC - Hotel Shop,Curtain - Down,WE - 5029 - OXN,John Doe,,    8 hours ,FALSE
+FALSE,12687923,Closed,2,FAC - Hotel Shop,VCP - Facilities,WE - 5753 - S2W,John Doe,John Doe,    7 hours ,FALSE
+FALSE,12687922,Closed,3,FAC - Hotel Shop,VCP - Facilities,WE - 4602 - WNS,John Doe,John Doe,    1 hour,FALSE
+FALSE,12687917,Closed,3,FAC - Hotel Shop,VCP - Facilities,WE - 4507 - QVN,John Doe,John Doe,    2 hours ,FALSE
+FALSE,12687914,Closed,2,FAC - Hotel Shop,VCP - Facilities,WE - 4153 - S2W,John Doe,John Doe,    6 hours ,FALSE
+FALSE,12687909,Closed,3,FAC - Hotel Shop,VCP - Facilities,WE - 3535 - SAN,John Doe,John Doe,    2 hours ,FALSE
+FALSE,12687908,Closed,3,FAC - Hotel Shop,VCP - Facilities,WE - 1901 - WVN,John Doe,John Doe,    1 hour,FALSE
+FALSE,12687906,Closed,3,FAC - Hotel Shop,Shower Clogged,WE - 5201 - WVN,John Doe,John Doe,    1 hour,FALSE
