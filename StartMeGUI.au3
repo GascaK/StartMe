@@ -1,28 +1,33 @@
+;================================
 ; Script Name:  StartMeGUI.au3
-; Desc:     A work related script that
-;			controls various job related
-;			duties.
+; Desc: A work related script that
+; controls various job related
+; duties.
 ; Author:       Gasca, K
 ; Created:      2 / 1 / 2017
-; Version:      2.0
+; Version:      2.1
+;================================
 
 #include <MsgBoxConstants.au3>
 #include <ButtonConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <StaticConstants.au3>
 #include <WindowsConstants.au3>
+#include <EditConstants.au3>
 #include <WinAPIFiles.au3>
 #include <File.au3>
 #include <Crypt.au3>
 
 ; UDF's ;
 #include "SnitchMe2.au3"
+#include "IntegrityCheck.au3"
 
 Opt("WinTitleMatchMode", 2)
 Opt("WinWaitDelay", 1000)
 Opt("MouseCoordMode", 0)
 Opt("SendKeyDelay", 15)
-Global $StartMe = GUICreate("StartMe GUI v 1.02", 315, 150, -1, -1)
+
+Global $StartMe = GUICreate("StartMe GUI v 1.51", 315, 150, -1, -1)
 
 ; Cryptography ;
 _Crypt_Startup();
@@ -31,9 +36,12 @@ Local $hkey = _Crypt_DeriveKey(StringToBinary("LiamisBadass"), $CALG_AES_128) ; 
 
 ; Menu Selection ;
 $idFileMenu = GUICtrlCreateMenu("File")
-$idLMSPass = GUICtrlCreateMenuItem("LMS Password", $idFileMenu)
-$idHOTPass = GUICtrlCreateMenuItem("HotSOS Password", $idFileMenu)
 $idSnitchMe = GUICtrlCreateMenuitem("SnitchMe", $idFileMenu)
+$idCloseMe = GUICtrlCreateMenuItem("Close", $idFileMenu)
+$idEditMenu = GUICtrlCreateMenu("Edit")
+$idLMSPass = GUICtrlCreateMenuItem("LMS Password", $idEditMenu)
+$idHOTPass = GUICtrlCreateMenuItem("HotSOS Password", $idEditMenu)
+$idSnitchIni = GUICtrlCreateMenuItem("Snitch Columns", $idEditMenu)
 ;---------------;
 
 ; Create Main Controller Window ;
@@ -54,13 +62,18 @@ Global $sHotPass = retPass($saveIndexHOT)
 Local $sLmsUser = retUser("sLmsUser")
 Global $sLmsPass = retPass($saveIndexLMS)
 ;---------------;
+
 Local $counter = 0
 
 While 1
-   $counter += 1
+
    $nMsg = GUIGetMsg($GUI_EVENT_ARRAY)
    Switch $nMsg[0]
 	  Case $GUI_EVENT_CLOSE
+		 GUIDelete($StartMe)
+		 Exit
+	  Case $idCloseMe
+		 GUIDelete($StartMe)
 		 Exit
 	  ; Change LMS Password ;
 	  Case $idLMSPass
@@ -75,6 +88,8 @@ While 1
 		 retPass($saveIndexHOT)
 		 GUISetState(@SW_ENABLE, $StartMe)
 	  ; Run Snitch report ;
+	   Case $idSnitchIni
+		   ChangeSnitchColumn()
 	  Case $idSnitchMe
 		 SnitchMe2()
 	  ; Run Hotsos ;
@@ -88,17 +103,16 @@ While 1
 		 loginLMS(retUser("sLmsUser"), retPass($saveIndexLMS))
 		 GUISetState(@SW_ENABLE, $StartMe)
 	  ; nothing.. ;
-	  Case $hotBox
+	  Case Else
 
    EndSwitch
 
-   If _IsChecked($hotBox) And ($counter >= 30000) Then
-	  If WinActivate("HotSOS") Then
-		 Sleep(1000)
-		 Send("{F5}")
-		 WinSetState("HotSOS", "", @SW_MINIMIZE)
+   If _IsChecked($hotBox)  Then
+	  If WinExists("Auto Logoff") Then
+		 WinActivate("Auto Logoff")
+		 Sleep(500)
+		 Send("{Enter}")
 	  EndIf
-	  $counter = 0
    EndIf
 WEnd
 
@@ -106,7 +120,9 @@ WEnd
 Func loginHOT ($userName, $passWord)
    Global $hsID = Run("C:\Program Files (x86)\MTech\hotsos\client_na2\HotSOS.exe")
    WinWaitActive("Login")
-   Send($userName & "{TAB}" & $passWord & "{ENTER}")
+   Send($userName & "{TAB}")
+   Send($passWord, 1)
+   Send ("{ENTER}")
    WinWaitActive("HotSOS")
    MouseClick("primary", 89, 285)
    Sleep(2000)
@@ -119,16 +135,32 @@ Func loginLMS($userName, $passWord)
 
    ShellExecute("C:\Users\Public\Desktop\LMS.ws")
    Sleep(2000)
-   if WinExists("PC5250") Then
-	  Send("{ENTER}")
-	  Send("{TAB}" & $userName & "{ENTER}")
+   Local $bRemap = False
+
+   If WinExists("PC5250") Then
+	  ControlClick("PC5250", "", "Button1")
+	  $bRemap = True
    EndIf
-	  ;Local $hWND = WinGetHandle("IBM")
-   Send($passWord & "{TAB 3}" & $userName & "{ENTER}")
-	  ;Send($userName & "{TAB}" & $passWord & "{ENTER}")
+
+   If WinExists("IBM i signon") Then
+	  ControlSetText("IBM i signon", "", "Edit2", $userName)
+	  ControlSetText("IBM i signon", "", "Edit3", $passWord)
+	  ControlSend("{ENTER}")
+   EndIf
+
+   If $bRemap Then
+	   MouseClick($MOUSE_CLICK_PRIMARY, 215, 15)
+	   ControlClick("PC5250", "", "Button1")
+	   WinActivate("Customize Keyboard")
+	   Send("{ALT}" & "f" & "o")
+	   ControlSetText("Open Keyboard File", "", "Edit1", "AS400")
+	   Send("{ENTER}")
+	   ControlClick("Personal Communications", "Yes", "Button1", "Primary", 1)
+   EndIf
 
    WinWaitActive("HOTEL(LMS)")
    Send($userName & "{TAB}" & $passWord & "{ENTER}")
+   Sleep(1000)
    Send("1" & "{ENTER 2}" & "1" & "{ENTER}")
 
 EndFunc
@@ -139,14 +171,14 @@ Func changeLMS()
    ; Create popUP for LMS ;
    Local $gChangeLMS = GUICreate("", 300, 60)
    Local $labelPass = GUICtrlCreateLabel("LMS Password: ", 16, 16, 81, 17)
-   Local $lmsInput = GUICtrlCreateInput("New Password", 112, 16, 121)
+   Local $lmsInput = GUICtrlCreateInput("New Password", 112, 16, 121, $ES_PASSWORD)
    Local $lmsButton = GUICtrlCreateButton("Change", 250, 16)
    GUICtrlSetLimit($lmsInput, 10)
    GUISetState(@SW_SHOW, $gChangeLMS)
 
    While 1
 	  $idMsg = GUIGetMsg($GUI_EVENT_ARRAY)
-	  if $idMsg[0] = $lmsButton Then
+	  If $idMsg[0] = $lmsButton Then
 		 $sLmsPass = GUICtrlRead($lmsInput) ; Edits the GLOBAL LMS password
 		 savePass($sLmsPass, $saveIndexLMS) ; Save Pass into saveIndexLMS
 		 ExitLoop
@@ -164,13 +196,13 @@ Func changeHOT()
    ; Create popUP for HOTsos ;
    Local $gChangeHOT = GUICreate("", 300, 60)
    Local $labelPass = GUICtrlCreateLabel("HOT Password: ", 16, 16, 81, 17)
-   Local $hotInput = GUICtrlCreateInput("New Password", 112, 16, 121)
+   Local $hotInput = GUICtrlCreateInput("New Password", 112, 16, 121, $ES_PASSWORD)
    Local $hotButton = GUICtrlCreateButton("Change", 250, 16)
    GUISetState(@SW_SHOW, $gChangeHOT)
 
    While 1
 	  $idMsg = GUIGetMsg($GUI_EVENT_ARRAY)
-	  if $idMsg[0] = $hotButton Then
+	  If $idMsg[0] = $hotButton Then
 		 $sHotPass = GUICtrlRead($hotInput) ; Edits the GLOBAL HOT password
 		 savePass($sHotPass, $saveIndexHOT) ; Save Pass into saveIndexHOT
 		 ExitLoop
@@ -186,16 +218,18 @@ EndFunc
 Func savePass($passInput, $fileSaved)
 
    Local $sFilePath = @WorkingDir & "\Res\" & $fileSaved
-   Local $hFile = FileOpen($sFilePath, $FO_OVERWRITE)
    Local $dEncrypt = _Crypt_EncryptData($passInput, $hkey, $CALG_USERKEY)
 
-   if FileExists($sFilePath) NOT Then
-	  MsgBox($MB_SYSTEMMODAL, "StartMe GUI", "File does not exist. Shut Down and restart with Admin Priveleges?")
+   If __VerifyPassIntegritySMG($sFilePath) NOT Then
+		MsgBox("", "StartMeGUI", "Integrity Check Failed")
+		Exit
    Else
-	  FileWrite($hFile, $dEncrypt)
+		Local $hFile = FileOpen($sFilePath, $FO_OVERWRITE)
+		FileWrite($hFile, $dEncrypt)
    EndIf
 
    FileClose($hFile)
+   Return True
 EndFunc
 
 ; Return Password ;
@@ -203,22 +237,19 @@ Func retPass($sPassFileName)
 
    Local $sFilePath = @WorkingDir & "\Res\" & $sPassFileName
 
-   If FileExists($sFilePath) NOT Then
-	  Local $hFile = FileOpen($sFilePath, $FO_READ + $FO_OVERWRITE + $FO_CREATEPATH)
-	  FileWrite($hFile, "tempPass")
-	  MsgBox($MB_SYSTEMMODAL, "StartMe GUI", "Change Password before using!")
-	  Return "tempPass"
-
+	If __VerifyPassIntegritySMG($sFilePath) NOT Then
+		MsgBox("", "StartMeGUI", "Integrity Check Failed")
+		Exit
    Else
-	  Local $hFile = FileOpen($sFilePath, $FO_READ)
+		Local $hFile = FileOpen($sFilePath, $FO_READ)
+		$sFileRead = FileRead($hFile)
+		Local $dDecrypted = _Crypt_DecryptData($sFileRead, $hKey, $CALG_USERKEY)
+		;MsgBox("","",BinaryToString($dDecrypted))
+		FileClose($hFile)
+		Return BinaryToString($dDecrypted)
    EndIf
 
-   $sFileRead = FileRead($hFile)
-   Local $dDecrypted = _Crypt_DecryptData($sFileRead, $hKey, $CALG_USERKEY)
-
-   FileClose($hFile)
-   Return BinaryToString($dDecrypted)
-
+	Return "FAIL"
 EndFunc
 
 ; Return Usernames ;
@@ -226,18 +257,15 @@ Func retUser($sToReturn)
 
    Local $sFilePath = @WorkingDir & "\Res\startMe.ini"
 
-   if FileExists($sFilePath) NOT Then
-	  MsgBox($MB_OK, "StartMe GUI", "File Does not exist. Creating .ini . . .")
-	  DirCreate($sFilePath)
-	  IniWrite($sFilePath , "StartMe - UserNames", "HotSOS", "Change Here")
-	  IniWrite($sFilePath , "StartMe - UserNames", "LMS", "Change Here")
-	  ShellExecute($sFilePath )
+   If __VerifyIniIntegritySMG($sFilePath) NOT Then Exit MsgBox("", "StartMeGUI", "Integrity Check Failed")
 
-   ElseIf $sToReturn = "sHsUser" Then
-	  return IniRead($sFilePath & "startMe.ini", "StartMe - UserNames", "HotSOS", "Default")
+
+
+   If $sToReturn = "sHsUser" Then
+	  return IniRead($sFilePath, "StartMe - UserNames", "HotSOS", "Default")
 
    ElseIf $sToReturn = "sLmsUser" Then
-	  return IniRead($sFilePath & "startMe.ini", "StartMe - UserNames", "LMS", "Default")
+	  return IniRead($sFilePath, "StartMe - UserNames", "LMS", "Default")
    EndIf
 
 EndFunc
