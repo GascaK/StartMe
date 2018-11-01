@@ -27,7 +27,7 @@ Opt("WinWaitDelay", 1000)
 Opt("MouseCoordMode", 0)
 Opt("SendKeyDelay", 15)
 
-Global $StartMe = GUICreate("StartMe GUI v 1.51", 315, 150, -1, -1)
+Global $StartMe = GUICreate("StartMe GUI v 2.1", 315, 150, -1, -1)
 
 ; Cryptography ;
 _Crypt_Startup();
@@ -244,7 +244,7 @@ Func retPass($sPassFileName)
 		Local $hFile = FileOpen($sFilePath, $FO_READ)
 		$sFileRead = FileRead($hFile)
 		Local $dDecrypted = _Crypt_DecryptData($sFileRead, $hKey, $CALG_USERKEY)
-		;MsgBox("","",BinaryToString($dDecrypted))
+		;MsgBox("","",BinaryToString($dDecrypted)) ; Debug, or I forgot my password =P
 		FileClose($hFile)
 		Return BinaryToString($dDecrypted)
    EndIf
